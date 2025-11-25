@@ -150,6 +150,79 @@
             font-size: 18px;
         }
 
+        /* Mobile Start Screen */
+        .mobile-start-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .mobile-start-screen.active {
+            display: flex;
+        }
+
+        .start-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .start-content h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .start-info {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: left;
+            line-height: 1.8;
+        }
+
+        .start-info strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .start-info p {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .start-button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .start-button:active {
+            transform: scale(0.95);
+            background: #764ba2;
+        }
+
         /* Tablet and below */
         @media (max-width: 768px) {
             .container {
@@ -246,6 +319,19 @@
                 width: 150px;
                 font-size: 16px;
             }
+
+            .start-content h1 {
+                font-size: 24px;
+            }
+
+            .start-info {
+                padding: 15px;
+                font-size: 13px;
+            }
+
+            .start-info strong {
+                font-size: 14px;
+            }
         }
 
         /* Landscape mobile */
@@ -290,6 +376,11 @@
                 padding: 8px;
                 font-size: 13px;
             }
+
+            .start-content {
+                max-height: 90vh;
+                overflow-y: auto;
+            }
         }
 
         /* Large screens */
@@ -310,6 +401,27 @@
     </style>
 </head>
 <body>
+    <!-- Mobile Start Screen -->
+    <div id="mobileStartScreen" class="mobile-start-screen">
+        <div class="start-content">
+            <h1>🎮 Flappy Bird Game</h1>
+            <div class="start-info">
+                <strong>🎮 Controls:</strong>
+                <p>Tap anywhere on the screen to make the bird flap and fly upward.</p>
+                
+                <strong>🎯 Objective:</strong>
+                <p>Navigate through the obstacles by tapping at the right time. Each successful pass earns you a point!</p>
+                
+                <strong>💡 Tips:</strong>
+                <p>• Timing is everything!<br>
+                • Don't tap too much or too little<br>
+                • Watch the gap between obstacles<br>
+                • Stay calm and focused</p>
+            </div>
+            <button class="start-button" onclick="startGame()">START GAME</button>
+        </div>
+    </div>
+
     <div class="container">
         <div class="game-wrapper">
             <canvas id="gameCanvas" width="400" height="600"></canvas>
@@ -345,6 +457,26 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+
+        // Check if mobile device
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        }
+
+        // Show start screen on mobile
+        let gameStarted = false;
+        if (isMobileDevice()) {
+            document.getElementById('mobileStartScreen').classList.add('active');
+            gameStarted = false;
+        } else {
+            gameStarted = true;
+        }
+
+        function startGame() {
+            document.getElementById('mobileStartScreen').classList.remove('active');
+            gameStarted = true;
+            gameRunning = true;
+        }
 
         // Responsive canvas sizing
         function resizeCanvas() {
@@ -403,7 +535,7 @@
 
         let obstacles = [];
         let score = 0;
-        let gameRunning = true;
+        let gameRunning = false; // Start as false until user clicks start
         let frameCount = 0;
         let textIndex = 0;
 
@@ -424,14 +556,23 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === ' ') {
                 e.preventDefault();
+                if (gameStarted) {
+                    flap();
+                }
+            }
+        });
+
+        canvas.addEventListener('click', function() {
+            if (gameStarted) {
                 flap();
             }
         });
 
-        canvas.addEventListener('click', flap);
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            flap();
+            if (gameStarted) {
+                flap();
+            }
         });
 
         function flap() {
@@ -447,7 +588,7 @@
         }
 
         function update() {
-            if (!gameRunning) return;
+            if (!gameRunning || !gameStarted) return;
 
             frameCount++;
 
